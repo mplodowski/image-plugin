@@ -65,47 +65,45 @@ class ImageManipulation
         return $this->handle($path, 'watermark', $options);
     }
 
-    public function webp($path)
+    public function webp(string $path)
     {
         return $this->handle($path, 'webp');
     }
 
-    public function optimize($path)
+    public function optimize(string $path)
     {
         return $this->handle($path, 'optimize');
     }
 
-    // base64 - function
+    public function base64(string $path, string $imageFormat = 'jpeg', bool $prefixWithFormat = true)
+    {
+        $this->setOriginalImagePath($path);
 
-    // width - function
+        return $this->getImage()->base64($imageFormat, $prefixWithFormat);
+    }
 
-    // height - function
+    public function getWidth(string $path)
+    {
+        $this->setOriginalImagePath($path);
 
-    // quality
+        return $this->getImage()->getWidth();
+    }
 
-//    public function width($path, $options = [])
-//    {
-//        $path = parse_url($path, PHP_URL_PATH);
-//
-//        return Image::load(base_path($path))
-//            ->getWidth();
-//    }
-//
-//    public function height($path, $options = [])
-//    {
-//        $path = parse_url($path, PHP_URL_PATH);
-//
-//        return Image::load(base_path($path))
-//            ->getHeight();
-//    }
+    public function getHeight(string $path)
+    {
+        $this->setOriginalImagePath($path);
 
-    // resize ??
+        return $this->getImage()->getHeight();
+    }
 
-    // canvas ??
+    public function quality(string $path, int $quality)
+    {
+        return $this->handle($path, 'quality', [$quality]);
+    }
 
     protected function handle(string $path, string $manipulation, array $options = [])
     {
-        $this->originalImagePath = parse_url($path, PHP_URL_PATH);
+        $this->setOriginalImagePath($path);
 
         $this->newImagePath = $this->getNewFilePath($manipulation, $options);
 
@@ -126,8 +124,8 @@ class ImageManipulation
             'sepia' => $image->sepia(),
             'sharpen' => $image->sharpen(...$options),
             'watermark' => $image->watermark(...$options),
-            'webp' => null,
             'optimize' => $image->optimize(),
+            'quality' => $image->quality(...$options),
         };
 
         // todo global setting?
@@ -166,5 +164,10 @@ class ImageManipulation
     protected function getFileHash(string $manipulation, array $options = [])
     {
         return md5($this->originalImagePath.$manipulation.implode($options).filemtime(base_path($this->originalImagePath)));
+    }
+
+    protected function setOriginalImagePath(string $path)
+    {
+        $this->originalImagePath = parse_url($path, PHP_URL_PATH);
     }
 }

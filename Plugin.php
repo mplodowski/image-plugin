@@ -35,6 +35,10 @@ class Plugin extends PluginBase
                 'watermark' => [$imageManipulation, 'watermark'],
                 'webp' => [$imageManipulation, 'webp'],
                 'optimize' => [$imageManipulation, 'optimize'],
+                'base64' => [$imageManipulation, 'base64'],
+                'get_width' => [$imageManipulation, 'getWidth'],
+                'get_height' => [$imageManipulation, 'getHeight'],
+                'quality' => [$imageManipulation, 'quality'],
             ],
         ];
     }
