@@ -126,6 +126,7 @@ class ImageManipulation
             'watermark' => $image->watermark(...$options),
             'optimize' => $image->optimize(),
             'quality' => $image->quality(...$options),
+            'webp' => null,
         };
 
         // todo global setting?
