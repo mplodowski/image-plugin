@@ -4,6 +4,7 @@ namespace Renatio\Image\Classes;
 
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Renatio\Image\Models\Settings;
 use Spatie\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
 use Spatie\ImageOptimizer\OptimizerChainFactory;
@@ -268,39 +269,46 @@ class ImageManipulation
         return $removed;
     }
 
+    protected function setting(string $key, mixed $default = null): mixed
+    {
+        return Settings::get($key, config("renatio.image::manipulations.$key", $default));
+    }
+
     protected function getManipulationsDirectory(): string
     {
-        return config('renatio.image::manipulations.directory', 'storage/app/uploads/public/manipulations/');
+        return (string) $this->setting('directory', 'storage/app/uploads/public/manipulations/');
     }
 
     protected function getDefaultWatermarkPath(): string
     {
-        return config('renatio.image::manipulations.watermark', themes_path('demo/assets/images/watermark.png'));
+        return (string) $this->setting('watermark', themes_path('demo/assets/images/watermark.png'));
     }
 
     protected function shouldOptimizeAfterManipulation(): bool
     {
-        return config('renatio.image::manipulations.optimize_after_manipulation', true);
+        return (bool) $this->setting('optimize_after_manipulation', true);
     }
 
     protected function getOptimizationTimeout(): int
     {
-        return config('renatio.image::manipulations.optimization_timeout', 120);
+        return (int) $this->setting('optimization_timeout', 120);
     }
 
     protected function shouldStripMetadata(): bool
     {
-        return config('renatio.image::manipulations.strip_metadata', true);
+        return (bool) $this->setting('strip_metadata', true);
     }
 
     protected function getOptimizerQuality(): int
     {
-        return (int) config('renatio.image::manipulations.optimizer_quality', 80);
+        return (int) $this->setting('optimizer_quality', 80);
     }
 
     protected function getBinaryPath(): ?string
     {
-        return config('renatio.image::manipulations.binary_path');
+        $value = $this->setting('binary_path');
+
+        return $value !== null && $value !== '' ? (string) $value : null;
     }
 
     protected function optimizeImage(string $imagePath): void

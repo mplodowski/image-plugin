@@ -4,7 +4,9 @@ namespace Renatio\Image;
 
 use Renatio\Image\Classes\ImageManipulation;
 use Renatio\Image\Console\ClearCache;
+use Renatio\Image\Models\Settings;
 use System\Classes\PluginBase;
+use System\Classes\SettingsManager;
 
 class Plugin extends PluginBase
 {
@@ -46,6 +48,32 @@ class Plugin extends PluginBase
                 'get_height' => [$imageManipulation, 'getHeight'],
                 'get_file_size' => [$imageManipulation, 'getFileSize'],
                 'quality' => [$imageManipulation, 'quality'],
+            ],
+        ];
+    }
+
+    public function registerPermissions(): array
+    {
+        return [
+            'renatio.image.access_settings' => [
+                'label' => 'renatio.image::lang.permissions.settings',
+                'tab' => 'renatio.image::lang.permissions.tab',
+            ],
+        ];
+    }
+
+    public function registerSettings(): array
+    {
+        return [
+            'settings' => [
+                'label' => 'renatio.image::lang.settings.label',
+                'description' => 'renatio.image::lang.settings.description',
+                'category' => SettingsManager::CATEGORY_SYSTEM,
+                'icon' => 'octo-icon-image',
+                'class' => Settings::class,
+                'order' => 600,
+                'keywords' => 'image manipulation optimization watermark',
+                'permissions' => ['renatio.image.access_settings'],
             ],
         ];
     }

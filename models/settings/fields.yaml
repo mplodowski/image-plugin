@@ -1,0 +1,47 @@
+# ===================================
+#  Form Field Definitions
+# ===================================
+
+fields:
+
+    directory:
+        label: renatio.image::lang.settings.field.directory
+        comment: renatio.image::lang.settings.field.directory_comment
+        type: text
+        span: left
+
+    watermark:
+        label: renatio.image::lang.settings.field.watermark
+        comment: renatio.image::lang.settings.field.watermark_comment
+        type: text
+        span: right
+
+    optimize_after_manipulation:
+        label: renatio.image::lang.settings.field.optimize_after_manipulation
+        comment: renatio.image::lang.settings.field.optimize_after_manipulation_comment
+        type: switch
+        span: left
+
+    strip_metadata:
+        label: renatio.image::lang.settings.field.strip_metadata
+        comment: renatio.image::lang.settings.field.strip_metadata_comment
+        type: switch
+        span: right
+
+    optimization_timeout:
+        label: renatio.image::lang.settings.field.optimization_timeout
+        comment: renatio.image::lang.settings.field.optimization_timeout_comment
+        type: number
+        span: left
+
+    optimizer_quality:
+        label: renatio.image::lang.settings.field.optimizer_quality
+        comment: renatio.image::lang.settings.field.optimizer_quality_comment
+        type: number
+        span: right
+
+    binary_path:
+        label: renatio.image::lang.settings.field.binary_path
+        comment: renatio.image::lang.settings.field.binary_path_comment
+        type: text
+        span: full
