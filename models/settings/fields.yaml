@@ -68,15 +68,15 @@ tabs:
             type: dropdown
             span: left
             options:
-                top-left: Top Left
-                top: Top
-                top-right: Top Right
-                left: Left
-                center: Center
-                right: Right
-                bottom-left: Bottom Left
-                bottom: Bottom
-                bottom-right: Bottom Right
+                top-left: renatio.image::lang.settings.option.position.top_left
+                top: renatio.image::lang.settings.option.position.top
+                top-right: renatio.image::lang.settings.option.position.top_right
+                left: renatio.image::lang.settings.option.position.left
+                center: renatio.image::lang.settings.option.position.center
+                right: renatio.image::lang.settings.option.position.right
+                bottom-left: renatio.image::lang.settings.option.position.bottom_left
+                bottom: renatio.image::lang.settings.option.position.bottom
+                bottom-right: renatio.image::lang.settings.option.position.bottom_right
 
         watermark_alpha:
             tab: renatio.image::lang.settings.tab.watermark
@@ -104,8 +104,8 @@ tabs:
             type: dropdown
             span: full
             options:
-                pixel: Pixel
-                percent: Percent
+                pixel: renatio.image::lang.settings.option.unit.pixel
+                percent: renatio.image::lang.settings.option.unit.percent
 
         watermark_width:
             tab: renatio.image::lang.settings.tab.watermark
@@ -128,8 +128,8 @@ tabs:
             type: dropdown
             span: left
             options:
-                pixel: Pixel
-                percent: Percent
+                pixel: renatio.image::lang.settings.option.unit.pixel
+                percent: renatio.image::lang.settings.option.unit.percent
 
         watermark_fit:
             tab: renatio.image::lang.settings.tab.watermark
@@ -138,9 +138,9 @@ tabs:
             type: dropdown
             span: right
             options:
-                contain: Contain
-                max: Max
-                fill: Fill
-                stretch: Stretch
-                crop: Crop
-                fill-max: Fill Max
+                contain: renatio.image::lang.settings.option.fit.contain
+                max: renatio.image::lang.settings.option.fit.max
+                fill: renatio.image::lang.settings.option.fit.fill
+                stretch: renatio.image::lang.settings.option.fit.stretch
+                crop: renatio.image::lang.settings.option.fit.crop
+                fill-max: renatio.image::lang.settings.option.fit.fill_max

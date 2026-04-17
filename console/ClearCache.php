@@ -9,13 +9,18 @@ class ClearCache extends Command
 {
     protected $signature = 'image:clear';
 
-    protected $description = 'Remove all cached manipulated images.';
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->description = (string) trans('renatio.image::lang.console.clear_cache_description');
+    }
 
     public function handle(ImageManipulation $manipulation): int
     {
         $removed = $manipulation->clearCache();
 
-        $this->info("Removed $removed cached image(s).");
+        $this->info(trans('renatio.image::lang.console.clear_cache_result', ['count' => $removed]));
 
         return self::SUCCESS;
     }

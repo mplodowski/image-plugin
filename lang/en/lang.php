@@ -9,6 +9,10 @@ return [
         'tab' => 'Image',
         'settings' => 'Manage image plugin settings',
     ],
+    'console' => [
+        'clear_cache_description' => 'Remove all cached manipulated images.',
+        'clear_cache_result' => 'Removed :count cached image(s).',
+    ],
     'settings' => [
         'label' => 'Image',
         'description' => 'Configure image manipulation and optimization.',
@@ -50,6 +54,31 @@ return [
             'watermark_size_unit_comment' => 'Pixel uses absolute values, percent is relative to the base image size.',
             'watermark_fit' => 'Fit',
             'watermark_fit_comment' => 'How the watermark is scaled when both width and height are set.',
+        ],
+        'option' => [
+            'position' => [
+                'top_left' => 'Top Left',
+                'top' => 'Top',
+                'top_right' => 'Top Right',
+                'left' => 'Left',
+                'center' => 'Center',
+                'right' => 'Right',
+                'bottom_left' => 'Bottom Left',
+                'bottom' => 'Bottom',
+                'bottom_right' => 'Bottom Right',
+            ],
+            'unit' => [
+                'pixel' => 'Pixel',
+                'percent' => 'Percent',
+            ],
+            'fit' => [
+                'contain' => 'Contain',
+                'max' => 'Max',
+                'fill' => 'Fill',
+                'stretch' => 'Stretch',
+                'crop' => 'Crop',
+                'fill_max' => 'Fill Max',
+            ],
         ],
     ],
 ];
