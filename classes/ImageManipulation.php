@@ -269,39 +269,39 @@ class ImageManipulation
         return $removed;
     }
 
-    protected function setting(string $key, mixed $default = null): mixed
+    protected function setting(string $key): mixed
     {
-        return Settings::get($key, config("renatio.image::manipulations.$key", $default));
+        return Settings::get($key, config("renatio.image::manipulations.$key"));
     }
 
     protected function getManipulationsDirectory(): string
     {
-        return (string) $this->setting('directory', 'storage/app/uploads/public/manipulations/');
+        return (string) $this->setting('directory');
     }
 
     protected function getDefaultWatermarkPath(): string
     {
-        return (string) $this->setting('watermark', themes_path('demo/assets/images/watermark.png'));
+        return (string) $this->setting('watermark');
     }
 
     protected function shouldOptimizeAfterManipulation(): bool
     {
-        return (bool) $this->setting('optimize_after_manipulation', true);
+        return (bool) $this->setting('optimize_after_manipulation');
     }
 
     protected function getOptimizationTimeout(): int
     {
-        return (int) $this->setting('optimization_timeout', 120);
+        return (int) $this->setting('optimization_timeout');
     }
 
     protected function shouldStripMetadata(): bool
     {
-        return (bool) $this->setting('strip_metadata', true);
+        return (bool) $this->setting('strip_metadata');
     }
 
     protected function getOptimizerQuality(): int
     {
-        return (int) $this->setting('optimizer_quality', 80);
+        return (int) $this->setting('optimizer_quality');
     }
 
     protected function getBinaryPath(): ?string

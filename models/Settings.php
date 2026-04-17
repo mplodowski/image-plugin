@@ -27,12 +27,8 @@ class Settings extends Model
 
     public function initSettingsData(): void
     {
-        $this->directory = 'storage/app/uploads/public/manipulations/';
-        $this->watermark = themes_path('demo/assets/images/watermark.png');
-        $this->optimize_after_manipulation = true;
-        $this->optimization_timeout = 120;
-        $this->strip_metadata = true;
-        $this->optimizer_quality = 80;
-        $this->binary_path = env('IMAGE_OPTIMIZER_PATH', '/opt/homebrew/bin');
+        foreach (config('renatio.image::manipulations', []) as $key => $value) {
+            $this->{$key} = $value;
+        }
     }
 }
