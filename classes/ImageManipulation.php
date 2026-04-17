@@ -2,112 +2,143 @@
 
 namespace Renatio\Image\Classes;
 
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Spatie\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
 
 class ImageManipulation
 {
-    protected string|null $originalImagePath = null;
+    protected ?string $originalImagePath = null;
 
-    protected string|null $newImagePath = null;
+    protected ?string $newImagePath = null;
 
-    public function brightness(string|null $path, int $brightness)
+    public function brightness(?string $path, int $brightness): ?string
     {
+        $this->validateRange($brightness, -100, 100, 'brightness');
+
         return $this->handle($path, 'brightness', [$brightness]);
     }
 
-    public function contrast(string|null $path, float $level)
+    public function contrast(?string $path, float $level): ?string
     {
+        $this->validateRange($level, -100, 100, 'contrast');
+
         return $this->handle($path, 'contrast', [$level]);
     }
 
-    public function gamma(string|null $path, float $gamma)
+    public function gamma(?string $path, float $gamma): ?string
     {
+        $this->validateRange($gamma, 0.1, 9.99, 'gamma');
+
         return $this->handle($path, 'gamma', [$gamma]);
     }
 
-    public function colorize(string|null $path, int $red, int $green, int $blue)
+    public function colorize(?string $path, int $red, int $green, int $blue): ?string
     {
+        $this->validateRange($red, -100, 100, 'red');
+        $this->validateRange($green, -100, 100, 'green');
+        $this->validateRange($blue, -100, 100, 'blue');
+
         return $this->handle($path, 'colorize', [$red, $green, $blue]);
     }
 
-    public function blur(string|null $path, int $blur)
+    public function blur(?string $path, int $blur): ?string
     {
+        $this->validateRange($blur, 0, 100, 'blur');
+
         return $this->handle($path, 'blur', [$blur]);
     }
 
-    public function pixelate(string|null $path, int $pixelate = 50)
+    public function pixelate(?string $path, int $pixelate = 50): ?string
     {
+        $this->validateRange($pixelate, 1, 1000, 'pixelate');
+
         return $this->handle($path, 'pixelate', [$pixelate]);
     }
 
-    public function greyscale(string|null $path)
+    public function greyscale(?string $path): ?string
     {
         return $this->handle($path, 'greyscale');
     }
 
-    public function sepia(string|null $path)
+    public function sepia(?string $path): ?string
     {
         return $this->handle($path, 'sepia');
     }
 
-    public function sharpen(string|null $path, float $amount)
+    public function sharpen(?string $path, float $amount): ?string
     {
+        $this->validateRange($amount, 0, 100, 'sharpen');
+
         return $this->handle($path, 'sharpen', [$amount]);
     }
 
-    public function watermark(string|null $path, string|null $watermarkImage = null, array $options = [])
+    public function watermark(?string $path, ?string $watermarkImage = null, array $options = []): ?string
     {
-        // todo parse options
-        $watermarkImage = $watermarkImage ?? themes_path('demo/assets/images/watermark.png');
+        $watermarkImage = $watermarkImage ?? $this->getDefaultWatermarkPath();
 
         array_unshift($options, $watermarkImage);
 
         return $this->handle($path, 'watermark', $options);
     }
 
-    public function webp(string|null $path)
+    public function webp(?string $path): ?string
     {
         return $this->handle($path, 'webp');
     }
 
-    public function optimize(string|null $path)
+    public function optimize(?string $path): ?string
     {
         return $this->handle($path, 'optimize');
     }
 
-    public function base64(string|null $path, string $imageFormat = 'jpeg', bool $prefixWithFormat = true)
+    public function base64(?string $path, string $imageFormat = 'jpeg', bool $prefixWithFormat = true): ?string
     {
         $this->setOriginalImagePath($path);
+
+        if (! $this->originalImageExists()) {
+            return null;
+        }
 
         return $this->getImage()->base64($imageFormat, $prefixWithFormat);
     }
 
-    public function getWidth(string|null $path)
+    public function getWidth(?string $path): ?int
     {
         $this->setOriginalImagePath($path);
+
+        if (! $this->originalImageExists()) {
+            return null;
+        }
 
         return $this->getImage()->getWidth();
     }
 
-    public function getHeight(string|null $path)
+    public function getHeight(?string $path): ?int
     {
         $this->setOriginalImagePath($path);
+
+        if (! $this->originalImageExists()) {
+            return null;
+        }
 
         return $this->getImage()->getHeight();
     }
 
-    public function quality(string|null $path, int $quality)
+    public function quality(?string $path, int $quality): ?string
     {
+        $this->validateRange($quality, 0, 100, 'quality');
+
         return $this->handle($path, 'quality', [$quality]);
     }
 
-    protected function handle(string|null $path, string $manipulation, array $options = [])
+    protected function handle(?string $path, string $manipulation, array $options = []): ?string
     {
         try {
             $this->setOriginalImagePath($path);
 
-            if (!file_exists(base_path($this->originalImagePath))) {
+            if (! $this->originalImageExists()) {
                 return $path;
             }
 
@@ -132,33 +163,33 @@ class ImageManipulation
                 'watermark' => $image->watermark(...$options),
                 'optimize' => $image->optimize(),
                 'quality' => $image->quality(...$options),
-                'webp' => null,
+                'webp' => null, // Conversion happens via file extension change in getNewFilePath()
             };
 
             $image->save($this->newImagePath);
 
-            // todo global optimize
-            if (1) {
-                $newImage = Image::load($this->newImagePath);
-
-                $optimizerChain = (new OptimizerChain)->setTimeout(120); // todo timeout in config
-
-                $newImage->optimize($optimizerChain);
-
-                $newImage->save($this->newImagePath);
+            if ($this->shouldOptimizeAfterManipulation()) {
+                $this->optimizeImage($this->newImagePath);
             }
 
             return $this->getImageUrl();
         } catch (\Exception $e) {
+            Log::error('Image manipulation failed', [
+                'manipulation' => $manipulation,
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $path;
         }
     }
 
-    protected function getNewFilePath(string $manipulation, array $options = [])
+    protected function getNewFilePath(string $manipulation, array $options = []): string
     {
-        $dirPath = 'storage/app/uploads/public/manipulations/';
+        $dirPath = $this->getManipulationsDirectory();
 
-        if (!is_dir($dirPath)) {
-            mkdir($dirPath);
+        if (! is_dir($dirPath)) {
+            mkdir($dirPath, 0755, true);
         }
 
         $info = pathinfo($this->originalImagePath);
@@ -168,23 +199,68 @@ class ImageManipulation
         return $dirPath . $this->getFileHash($manipulation, $options) . ".$extension";
     }
 
-    protected function getImage()
+    protected function getImage(): Image
     {
         return Image::load(base_path($this->originalImagePath));
     }
 
-    protected function getImageUrl()
+    protected function getImageUrl(): string
     {
         return asset($this->newImagePath);
     }
 
-    protected function getFileHash(string $manipulation, array $options = [])
+    protected function getFileHash(string $manipulation, array $options = []): string
     {
         return md5($this->originalImagePath . $manipulation . implode($options) . filemtime(base_path($this->originalImagePath)));
     }
 
-    protected function setOriginalImagePath(string|null $path)
+    protected function setOriginalImagePath(?string $path): void
     {
-        $this->originalImagePath = parse_url($path, PHP_URL_PATH);
+        $this->originalImagePath = $path ? parse_url($path, PHP_URL_PATH) : null;
+    }
+
+    protected function originalImageExists(): bool
+    {
+        return $this->originalImagePath && file_exists(base_path($this->originalImagePath));
+    }
+
+    protected function validateRange(int|float $value, int|float $min, int|float $max, string $parameter): void
+    {
+        if ($value < $min || $value > $max) {
+            throw new InvalidArgumentException(
+                "The $parameter value must be between $min and $max. Given: $value",
+            );
+        }
+    }
+
+    protected function getManipulationsDirectory(): string
+    {
+        return config('renatio.image::manipulations.directory', 'storage/app/uploads/public/manipulations/');
+    }
+
+    protected function getDefaultWatermarkPath(): string
+    {
+        return config('renatio.image::manipulations.watermark', themes_path('demo/assets/images/watermark.png'));
+    }
+
+    protected function shouldOptimizeAfterManipulation(): bool
+    {
+        return config('renatio.image::manipulations.optimize_after_manipulation', true);
+    }
+
+    protected function getOptimizationTimeout(): int
+    {
+        return config('renatio.image::manipulations.optimization_timeout', 120);
+    }
+
+    protected function optimizeImage(string $imagePath): void
+    {
+        $newImage = Image::load($imagePath);
+
+        $optimizerChain = (new OptimizerChain)->setTimeout($this->getOptimizationTimeout());
+
+        $newImage->optimize($optimizerChain);
+
+        $newImage->save($imagePath);
     }
 }

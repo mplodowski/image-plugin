@@ -7,7 +7,7 @@ use System\Classes\PluginBase;
 
 class Plugin extends PluginBase
 {
-    public function pluginDetails()
+    public function pluginDetails(): array
     {
         return [
             'name' => 'renatio.image::lang.plugin.name',
@@ -17,9 +17,9 @@ class Plugin extends PluginBase
         ];
     }
 
-    public function registerMarkupTags()
+    public function registerMarkupTags(): array
     {
-        $imageManipulation = new ImageManipulation();
+        $imageManipulation = new ImageManipulation;
 
         return [
             'filters' => [
