@@ -4,6 +4,7 @@ namespace Renatio\Image\Classes;
 
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Renatio\Image\Jobs\OptimizeImageJob;
 use Renatio\Image\Models\Settings;
 use Spatie\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
@@ -165,7 +166,7 @@ class ImageManipulation
             $image->save($this->newImagePath);
 
             if ($this->shouldOptimizeAfterManipulation()) {
-                $this->optimizeImage($this->newImagePath);
+                $this->dispatchOptimization($this->newImagePath);
             }
 
             return $this->getImageUrl();
@@ -311,7 +312,23 @@ class ImageManipulation
         return $value !== null && $value !== '' ? (string) $value : null;
     }
 
-    protected function optimizeImage(string $imagePath): void
+    protected function shouldQueueOptimization(): bool
+    {
+        return (bool) $this->setting('queue_optimization');
+    }
+
+    protected function dispatchOptimization(string $imagePath): void
+    {
+        if ($this->shouldQueueOptimization()) {
+            OptimizeImageJob::dispatch($imagePath);
+
+            return;
+        }
+
+        $this->runOptimizer($imagePath);
+    }
+
+    public function runOptimizer(string $imagePath): void
     {
         $this->buildOptimizerChain()->optimize($imagePath);
     }

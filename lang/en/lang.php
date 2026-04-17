@@ -23,6 +23,8 @@ return [
             'optimization_timeout_comment' => 'Maximum time the optimizer chain is allowed to run before aborting.',
             'strip_metadata' => 'Strip metadata',
             'strip_metadata_comment' => 'Remove EXIF, IPTC, ICC and XMP metadata from JPEGs during optimization.',
+            'queue_optimization' => 'Queue optimization',
+            'queue_optimization_comment' => 'Push the optimizer chain to a queue worker instead of running it during the request. The initial render returns an unoptimized file and a worker replaces it in the background. Requires a running queue worker.',
             'optimizer_quality' => 'Optimizer quality (0-100)',
             'optimizer_quality_comment' => 'Quality target passed to jpegoptim, pngquant, cwebp and avifenc.',
             'binary_path' => 'Binary path',

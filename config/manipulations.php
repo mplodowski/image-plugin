@@ -11,6 +11,10 @@ return [
     // Run the optimizer chain on every manipulation result.
     'optimize_after_manipulation' => true,
 
+    // Dispatch the optimizer chain to a queue worker instead of running it during the request.
+    // Requires a functioning queue worker; the initial render will return an unoptimized file.
+    'queue_optimization' => false,
+
     // Seconds the optimizer chain is allowed to run before aborting.
     'optimization_timeout' => 120,
 

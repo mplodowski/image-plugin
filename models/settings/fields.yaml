@@ -28,6 +28,12 @@ fields:
         type: switch
         span: right
 
+    queue_optimization:
+        label: renatio.image::lang.settings.field.queue_optimization
+        comment: renatio.image::lang.settings.field.queue_optimization_comment
+        type: switch
+        span: full
+
     optimization_timeout:
         label: renatio.image::lang.settings.field.optimization_timeout
         comment: renatio.image::lang.settings.field.optimization_timeout_comment
