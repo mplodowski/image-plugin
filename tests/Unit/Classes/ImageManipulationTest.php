@@ -259,6 +259,18 @@ describe('ImageManipulation Class', function () {
         });
     });
 
+    describe('cache key generation', function () {
+        it('produces different keys for option values that would merge to the same string without a separator', function () {
+            $method = new ReflectionMethod($this->imageManipulation, 'buildCacheKey');
+            $method->setAccessible(true);
+
+            $keyA = $method->invoke($this->imageManipulation, '/img.jpg', 'colorize', [1, 23], 1000);
+            $keyB = $method->invoke($this->imageManipulation, '/img.jpg', 'colorize', [12, 3], 1000);
+
+            expect($keyA)->not->toBe($keyB);
+        });
+    });
+
     describe('URL parsing', function () {
         it('extracts path from full URL', function () {
             $reflection = new ReflectionMethod($this->imageManipulation, 'setOriginalImagePath');

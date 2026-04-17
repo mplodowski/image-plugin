@@ -211,7 +211,17 @@ class ImageManipulation
 
     protected function getFileHash(string $manipulation, array $options = []): string
     {
-        return md5($this->originalImagePath . $manipulation . implode($options) . filemtime(base_path($this->originalImagePath)));
+        return md5($this->buildCacheKey(
+            $this->originalImagePath,
+            $manipulation,
+            $options,
+            filemtime(base_path($this->originalImagePath)),
+        ));
+    }
+
+    protected function buildCacheKey(string $path, string $manipulation, array $options, int $modifiedAt): string
+    {
+        return $path . '|' . $manipulation . '|' . implode('|', $options) . '|' . $modifiedAt;
     }
 
     protected function setOriginalImagePath(?string $path): void
