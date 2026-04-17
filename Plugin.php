@@ -3,6 +3,7 @@
 namespace Renatio\Image;
 
 use Renatio\Image\Classes\ImageManipulation;
+use Renatio\Image\Console\ClearCache;
 use System\Classes\PluginBase;
 
 class Plugin extends PluginBase
@@ -15,6 +16,11 @@ class Plugin extends PluginBase
             'author' => 'Renatio',
             'icon' => 'octo-icon-image',
         ];
+    }
+
+    public function register(): void
+    {
+        $this->registerConsoleCommand('image:clear', ClearCache::class);
     }
 
     public function registerMarkupTags(): array
@@ -38,6 +44,7 @@ class Plugin extends PluginBase
                 'base64' => [$imageManipulation, 'base64'],
                 'get_width' => [$imageManipulation, 'getWidth'],
                 'get_height' => [$imageManipulation, 'getHeight'],
+                'get_file_size' => [$imageManipulation, 'getFileSize'],
                 'quality' => [$imageManipulation, 'quality'],
             ],
         ];

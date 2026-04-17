@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Spatie\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
+use Spatie\ImageOptimizer\OptimizerChainFactory;
+use Spatie\ImageOptimizer\Optimizers\Jpegoptim;
 
 class ImageManipulation
 {
@@ -76,11 +78,9 @@ class ImageManipulation
 
     public function watermark(?string $path, ?string $watermarkImage = null, array $options = []): ?string
     {
-        $watermarkImage = $watermarkImage ?? $this->getDefaultWatermarkPath();
+        $watermarkImage ??= $this->getDefaultWatermarkPath();
 
-        array_unshift($options, $watermarkImage);
-
-        return $this->handle($path, 'watermark', $options);
+        return $this->handle($path, 'watermark', [$watermarkImage, ...$options]);
     }
 
     public function webp(?string $path): ?string
@@ -95,27 +95,22 @@ class ImageManipulation
 
     public function base64(?string $path, string $imageFormat = 'jpeg', bool $prefixWithFormat = true): ?string
     {
-        $this->setOriginalImagePath($path);
+        $image = $this->loadOriginalImage($path);
 
-        if (! $this->originalImageExists()) {
-            return null;
-        }
-
-        return $this->getImage()->base64($imageFormat, $prefixWithFormat);
+        return $image?->base64($imageFormat, $prefixWithFormat);
     }
 
     public function getWidth(?string $path): ?int
     {
-        $this->setOriginalImagePath($path);
-
-        if (! $this->originalImageExists()) {
-            return null;
-        }
-
-        return $this->getImage()->getWidth();
+        return $this->loadOriginalImage($path)?->getWidth();
     }
 
     public function getHeight(?string $path): ?int
+    {
+        return $this->loadOriginalImage($path)?->getHeight();
+    }
+
+    public function getFileSize(?string $path): ?int
     {
         $this->setOriginalImagePath($path);
 
@@ -123,7 +118,7 @@ class ImageManipulation
             return null;
         }
 
-        return $this->getImage()->getHeight();
+        return filesize(base_path($this->originalImagePath));
     }
 
     public function quality(?string $path, int $quality): ?string
@@ -163,7 +158,7 @@ class ImageManipulation
                 'watermark' => $image->watermark(...$options),
                 'optimize' => $image->optimize(),
                 'quality' => $image->quality(...$options),
-                'webp' => null, // Conversion happens via file extension change in getNewFilePath()
+                'webp' => $image->format('webp'),
             };
 
             $image->save($this->newImagePath);
@@ -196,12 +191,23 @@ class ImageManipulation
 
         $extension = $manipulation === 'webp' ? 'webp' : $info['extension'];
 
-        return $dirPath . $this->getFileHash($manipulation, $options) . ".$extension";
+        return $dirPath.$this->getFileHash($manipulation, $options).".$extension";
     }
 
     protected function getImage(): Image
     {
         return Image::load(base_path($this->originalImagePath));
+    }
+
+    protected function loadOriginalImage(?string $path): ?Image
+    {
+        $this->setOriginalImagePath($path);
+
+        if (! $this->originalImageExists()) {
+            return null;
+        }
+
+        return $this->getImage();
     }
 
     protected function getImageUrl(): string
@@ -221,12 +227,12 @@ class ImageManipulation
 
     protected function buildCacheKey(string $path, string $manipulation, array $options, int $modifiedAt): string
     {
-        return $path . '|' . $manipulation . '|' . implode('|', $options) . '|' . $modifiedAt;
+        return $path.'|'.$manipulation.'|'.implode('|', $options).'|'.$modifiedAt;
     }
 
     protected function setOriginalImagePath(?string $path): void
     {
-        $this->originalImagePath = $path ? parse_url($path, PHP_URL_PATH) : null;
+        $this->originalImagePath = $path ? (parse_url($path, PHP_URL_PATH) ?: null) : null;
     }
 
     protected function originalImageExists(): bool
@@ -241,6 +247,25 @@ class ImageManipulation
                 "The $parameter value must be between $min and $max. Given: $value",
             );
         }
+    }
+
+    public function clearCache(): int
+    {
+        $directory = base_path($this->getManipulationsDirectory());
+
+        if (! is_dir($directory)) {
+            return 0;
+        }
+
+        $removed = 0;
+
+        foreach (new \FilesystemIterator($directory) as $file) {
+            if ($file->isFile() && unlink($file->getPathname())) {
+                $removed++;
+            }
+        }
+
+        return $removed;
     }
 
     protected function getManipulationsDirectory(): string
@@ -263,14 +288,47 @@ class ImageManipulation
         return config('renatio.image::manipulations.optimization_timeout', 120);
     }
 
+    protected function shouldStripMetadata(): bool
+    {
+        return config('renatio.image::manipulations.strip_metadata', true);
+    }
+
+    protected function getOptimizerQuality(): int
+    {
+        return (int) config('renatio.image::manipulations.optimizer_quality', 80);
+    }
+
+    protected function getBinaryPath(): ?string
+    {
+        return config('renatio.image::manipulations.binary_path');
+    }
+
     protected function optimizeImage(string $imagePath): void
     {
-        $newImage = Image::load($imagePath);
+        $this->buildOptimizerChain()->optimize($imagePath);
+    }
 
-        $optimizerChain = (new OptimizerChain)->setTimeout($this->getOptimizationTimeout());
+    protected function buildOptimizerChain(): OptimizerChain
+    {
+        $chain = OptimizerChainFactory::create(['quality' => $this->getOptimizerQuality()])
+            ->setTimeout($this->getOptimizationTimeout());
 
-        $newImage->optimize($optimizerChain);
+        $binaryPath = $this->getBinaryPath();
+        $stripMetadata = $this->shouldStripMetadata();
 
-        $newImage->save($imagePath);
+        foreach ($chain->getOptimizers() as $optimizer) {
+            if ($binaryPath) {
+                $optimizer->setBinaryPath($binaryPath);
+            }
+
+            if (! $stripMetadata && $optimizer instanceof Jpegoptim) {
+                $optimizer->setOptions(array_values(array_filter(
+                    $optimizer->options,
+                    fn (string $option) => $option !== '--strip-all',
+                )));
+            }
+        }
+
+        return $chain;
     }
 }
