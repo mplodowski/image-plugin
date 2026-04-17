@@ -2,7 +2,6 @@
 
 namespace Renatio\Image\Tests;
 
-use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Mockery;
@@ -11,35 +10,44 @@ use October\Rain\Database\Pivot;
 use October\Tests\Concerns\InteractsWithAuthentication;
 use October\Tests\Concerns\PerformsMigrations;
 use October\Tests\Concerns\PerformsRegistrations;
-use PDO;
-use ReflectionClass;
-use ReflectionException;
-use TestCase;
 use Throwable;
 
-abstract class OctoberPestTestCase extends TestCase
+abstract class OctoberPestTestCase extends \TestCase
 {
     use InteractsWithAuthentication;
     use PerformsMigrations;
     use PerformsRegistrations;
 
-    /** @var array<class-string>|null */
     protected static ?array $cachedModelClasses = null;
 
     protected static bool $databaseMigrated = false;
 
-    protected static ?PDO $inMemoryConnection = null;
+    protected static ?\PDO $inMemoryConnection = null;
 
     protected static bool $pluginsLoaded = false;
 
     public function setUpOctoberPlugin(): void
     {
         $this->loadAllPlugins();
-        $this->restoreInMemoryConnection();
-        $this->runMigrationsOnce();
+
+        if (self::$inMemoryConnection !== null) {
+            DB::connection()->setPdo(self::$inMemoryConnection);
+        }
+
+        if (! self::$databaseMigrated) {
+            $this->migrateDatabase();
+
+            self::$databaseMigrated = true;
+
+            if ($this->usingInMemoryDatabase()) {
+                self::$inMemoryConnection = DB::connection()->getPdo();
+            }
+        }
+
         $this->beginDatabaseTransaction();
 
         Model::unguard();
+
         Mail::pretend();
     }
 
@@ -50,35 +58,13 @@ abstract class OctoberPestTestCase extends TestCase
         }
 
         $this->rollbackDatabaseTransaction();
+
         $this->flushModelEventListeners();
-    }
-
-    protected function restoreInMemoryConnection(): void
-    {
-        if (self::$inMemoryConnection !== null) {
-            DB::connection()->setPdo(self::$inMemoryConnection);
-        }
-    }
-
-    protected function runMigrationsOnce(): void
-    {
-        if (self::$databaseMigrated) {
-            return;
-        }
-
-        $this->migrateDatabase();
-        self::$databaseMigrated = true;
-
-        if ($this->usingInMemoryDatabase()) {
-            self::$inMemoryConnection = DB::connection()->getPdo();
-        }
     }
 
     protected function usingInMemoryDatabase(): bool
     {
-        $default = config('database.default');
-
-        return config("database.connections.{$default}.database") === ':memory:';
+        return config('database.connections.'.config('database.default').'.database') === ':memory:';
     }
 
     protected function beginDatabaseTransaction(): void
@@ -89,43 +75,43 @@ abstract class OctoberPestTestCase extends TestCase
             return;
         }
 
-        $this->withoutEventDispatcher($connection, fn () => $connection->beginTransaction());
+        $dispatcher = $connection->getEventDispatcher();
+        $connection->unsetEventDispatcher();
+
+        $connection->beginTransaction();
+
+        $connection->setEventDispatcher($dispatcher);
     }
 
     protected function rollbackDatabaseTransaction(): void
     {
         $connection = DB::connection();
 
-        $this->withoutEventDispatcher($connection, function () use ($connection): void {
-            try {
-                if ($connection->getPdo()?->inTransaction()) {
-                    $connection->rollBack();
-                }
-            } catch (Throwable) {
-                self::$databaseMigrated = false;
-            }
-        });
-    }
-
-    protected function withoutEventDispatcher(Connection $connection, callable $callback): void
-    {
         $dispatcher = $connection->getEventDispatcher();
         $connection->unsetEventDispatcher();
 
-        $callback();
+        try {
+            if ($connection->getPdo() && $connection->getPdo()->inTransaction()) {
+                $connection->rollBack();
+            }
+        } catch (Throwable) {
+            self::$databaseMigrated = false;
+        }
 
         $connection->setEventDispatcher($dispatcher);
     }
 
     protected function flushModelEventListeners(): void
     {
-        self::$cachedModelClasses ??= $this->discoverModelClasses();
+        if (self::$cachedModelClasses === null) {
+            self::$cachedModelClasses = $this->discoverModelClasses();
+        }
 
         foreach (self::$cachedModelClasses as $class) {
             try {
                 $class::flushEventListeners();
             } catch (Throwable) {
-                // Ignore classes that fail to flush
+                continue;
             }
         }
 
@@ -137,26 +123,33 @@ abstract class OctoberPestTestCase extends TestCase
      */
     protected function discoverModelClasses(): array
     {
-        return array_filter(
-            get_declared_classes(),
-            fn (string $class): bool => $class !== Pivot::class
-                && ! str_starts_with($class, 'Mockery')
-                && $this->isFlushableModelClass($class),
-        );
-    }
+        $modelClasses = [];
 
-    protected function isFlushableModelClass(string $class): bool
-    {
-        try {
-            $reflectClass = new ReflectionClass($class);
+        foreach (get_declared_classes() as $class) {
+            if ($class === Pivot::class || str_starts_with($class, 'Mockery')) {
+                continue;
+            }
 
-            return $reflectClass->isInstantiable()
-                && $reflectClass->isSubclassOf(Model::class)
-                && ! $reflectClass->isSubclassOf(Pivot::class)
-                && method_exists($class, 'flushEventListeners');
-        } catch (ReflectionException) {
-            return false;
+            try {
+                $reflectClass = new \ReflectionClass($class);
+
+                if (
+                    ! $reflectClass->isInstantiable() ||
+                    ! $reflectClass->isSubclassOf(Model::class) ||
+                    $reflectClass->isSubclassOf(Pivot::class)
+                ) {
+                    continue;
+                }
+
+                if (method_exists($class, 'flushEventListeners')) {
+                    $modelClasses[] = $class;
+                }
+            } catch (Throwable) {
+                continue;
+            }
         }
+
+        return $modelClasses;
     }
 
     protected function guessPluginCodeFromTest(): string

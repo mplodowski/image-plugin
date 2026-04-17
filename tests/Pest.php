@@ -3,6 +3,10 @@
 use Renatio\Image\Tests\TestCase;
 
 uses(TestCase::class)
-    ->beforeEach(fn () => $this->setUpOctoberPlugin())
-    ->afterEach(fn () => $this->tearDownOctoberPlugin())
-    ->in('Unit', 'Integration');
+    ->beforeEach(function () {
+        $this->setUpOctoberPlugin();
+    })
+    ->afterEach(function () {
+        $this->tearDownOctoberPlugin();
+    })
+    ->in(__DIR__);
