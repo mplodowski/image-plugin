@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Renatio\Image\Jobs\OptimizeImageJob;
 use Renatio\Image\Models\Settings;
+use Spatie\Image\Enums\AlignPosition;
+use Spatie\Image\Enums\Fit;
+use Spatie\Image\Enums\Unit;
 use Spatie\Image\Image;
 use Spatie\ImageOptimizer\OptimizerChain;
 use Spatie\ImageOptimizer\OptimizerChainFactory;
@@ -82,7 +85,7 @@ class ImageManipulation
     {
         $watermarkImage ??= $this->getDefaultWatermarkPath();
 
-        return $this->handle($path, 'watermark', [$watermarkImage, ...$options]);
+        return $this->handle($path, 'watermark', [$watermarkImage, ...$this->resolveWatermarkOptions($options)]);
     }
 
     public function webp(?string $path): ?string
@@ -229,7 +232,12 @@ class ImageManipulation
 
     protected function buildCacheKey(string $path, string $manipulation, array $options, int $modifiedAt): string
     {
-        return $path.'|'.$manipulation.'|'.implode('|', $options).'|'.$modifiedAt;
+        $serialized = array_map(
+            fn ($option) => $option instanceof \BackedEnum ? $option->value : $option,
+            $options,
+        );
+
+        return $path.'|'.$manipulation.'|'.implode('|', $serialized).'|'.$modifiedAt;
     }
 
     protected function setOriginalImagePath(?string $path): void
@@ -283,6 +291,27 @@ class ImageManipulation
     protected function getDefaultWatermarkPath(): string
     {
         return (string) $this->setting('watermark');
+    }
+
+    protected function resolveWatermarkOptions(array $overrides): array
+    {
+        $position = AlignPosition::tryFrom((string) ($overrides['position'] ?? $this->setting('watermark_position'))) ?? AlignPosition::BottomRight;
+        $paddingUnit = Unit::tryFrom((string) ($overrides['padding_unit'] ?? $this->setting('watermark_padding_unit'))) ?? Unit::Pixel;
+        $sizeUnit = Unit::tryFrom((string) ($overrides['size_unit'] ?? $this->setting('watermark_size_unit'))) ?? Unit::Pixel;
+        $fit = Fit::tryFrom((string) ($overrides['fit'] ?? $this->setting('watermark_fit'))) ?? Fit::Contain;
+
+        return [
+            $position,
+            (int) ($overrides['padding_x'] ?? $this->setting('watermark_padding_x')),
+            (int) ($overrides['padding_y'] ?? $this->setting('watermark_padding_y')),
+            $paddingUnit,
+            (int) ($overrides['width'] ?? $this->setting('watermark_width')),
+            $sizeUnit,
+            (int) ($overrides['height'] ?? $this->setting('watermark_height')),
+            $sizeUnit,
+            $fit,
+            (int) ($overrides['alpha'] ?? $this->setting('watermark_alpha')),
+        ];
     }
 
     protected function shouldOptimizeAfterManipulation(): bool

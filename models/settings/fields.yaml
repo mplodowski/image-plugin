@@ -2,52 +2,145 @@
 #  Form Field Definitions
 # ===================================
 
-fields:
+tabs:
+    fields:
 
-    directory:
-        label: renatio.image::lang.settings.field.directory
-        comment: renatio.image::lang.settings.field.directory_comment
-        type: text
-        span: left
+        directory:
+            tab: renatio.image::lang.settings.tab.general
+            label: renatio.image::lang.settings.field.directory
+            comment: renatio.image::lang.settings.field.directory_comment
+            type: text
+            span: full
 
-    watermark:
-        label: renatio.image::lang.settings.field.watermark
-        comment: renatio.image::lang.settings.field.watermark_comment
-        type: text
-        span: right
+        optimize_after_manipulation:
+            tab: renatio.image::lang.settings.tab.optimization
+            label: renatio.image::lang.settings.field.optimize_after_manipulation
+            comment: renatio.image::lang.settings.field.optimize_after_manipulation_comment
+            type: switch
+            span: left
 
-    optimize_after_manipulation:
-        label: renatio.image::lang.settings.field.optimize_after_manipulation
-        comment: renatio.image::lang.settings.field.optimize_after_manipulation_comment
-        type: switch
-        span: left
+        strip_metadata:
+            tab: renatio.image::lang.settings.tab.optimization
+            label: renatio.image::lang.settings.field.strip_metadata
+            comment: renatio.image::lang.settings.field.strip_metadata_comment
+            type: switch
+            span: right
 
-    strip_metadata:
-        label: renatio.image::lang.settings.field.strip_metadata
-        comment: renatio.image::lang.settings.field.strip_metadata_comment
-        type: switch
-        span: right
+        queue_optimization:
+            tab: renatio.image::lang.settings.tab.optimization
+            label: renatio.image::lang.settings.field.queue_optimization
+            comment: renatio.image::lang.settings.field.queue_optimization_comment
+            type: switch
+            span: full
 
-    queue_optimization:
-        label: renatio.image::lang.settings.field.queue_optimization
-        comment: renatio.image::lang.settings.field.queue_optimization_comment
-        type: switch
-        span: full
+        optimization_timeout:
+            tab: renatio.image::lang.settings.tab.optimization
+            label: renatio.image::lang.settings.field.optimization_timeout
+            comment: renatio.image::lang.settings.field.optimization_timeout_comment
+            type: number
+            span: left
 
-    optimization_timeout:
-        label: renatio.image::lang.settings.field.optimization_timeout
-        comment: renatio.image::lang.settings.field.optimization_timeout_comment
-        type: number
-        span: left
+        optimizer_quality:
+            tab: renatio.image::lang.settings.tab.optimization
+            label: renatio.image::lang.settings.field.optimizer_quality
+            comment: renatio.image::lang.settings.field.optimizer_quality_comment
+            type: number
+            span: right
 
-    optimizer_quality:
-        label: renatio.image::lang.settings.field.optimizer_quality
-        comment: renatio.image::lang.settings.field.optimizer_quality_comment
-        type: number
-        span: right
+        binary_path:
+            tab: renatio.image::lang.settings.tab.optimization
+            label: renatio.image::lang.settings.field.binary_path
+            comment: renatio.image::lang.settings.field.binary_path_comment
+            type: text
+            span: full
 
-    binary_path:
-        label: renatio.image::lang.settings.field.binary_path
-        comment: renatio.image::lang.settings.field.binary_path_comment
-        type: text
-        span: full
+        watermark:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark
+            comment: renatio.image::lang.settings.field.watermark_comment
+            type: text
+            span: full
+
+        watermark_position:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_position
+            comment: renatio.image::lang.settings.field.watermark_position_comment
+            type: dropdown
+            span: left
+            options:
+                top-left: Top Left
+                top: Top
+                top-right: Top Right
+                left: Left
+                center: Center
+                right: Right
+                bottom-left: Bottom Left
+                bottom: Bottom
+                bottom-right: Bottom Right
+
+        watermark_alpha:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_alpha
+            comment: renatio.image::lang.settings.field.watermark_alpha_comment
+            type: number
+            span: right
+
+        watermark_padding_x:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_padding_x
+            type: number
+            span: left
+
+        watermark_padding_y:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_padding_y
+            type: number
+            span: right
+
+        watermark_padding_unit:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_padding_unit
+            comment: renatio.image::lang.settings.field.watermark_padding_unit_comment
+            type: dropdown
+            span: full
+            options:
+                pixel: Pixel
+                percent: Percent
+
+        watermark_width:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_width
+            comment: renatio.image::lang.settings.field.watermark_width_comment
+            type: number
+            span: left
+
+        watermark_height:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_height
+            comment: renatio.image::lang.settings.field.watermark_height_comment
+            type: number
+            span: right
+
+        watermark_size_unit:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_size_unit
+            comment: renatio.image::lang.settings.field.watermark_size_unit_comment
+            type: dropdown
+            span: left
+            options:
+                pixel: Pixel
+                percent: Percent
+
+        watermark_fit:
+            tab: renatio.image::lang.settings.tab.watermark
+            label: renatio.image::lang.settings.field.watermark_fit
+            comment: renatio.image::lang.settings.field.watermark_fit_comment
+            type: dropdown
+            span: right
+            options:
+                contain: Contain
+                max: Max
+                fill: Fill
+                stretch: Stretch
+                crop: Crop
+                fill-max: Fill Max
