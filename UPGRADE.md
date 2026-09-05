@@ -1,5 +1,7 @@
 # Upgrade guide
 
+Versions not listed here need no action. Back up the database before upgrading.
+
 ## Upgrading to 1.0.1
 
 First version of Image plugin.
