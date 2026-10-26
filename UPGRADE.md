@@ -2,6 +2,31 @@
 
 Versions not listed here need no action. Back up the database before upgrading.
 
+## Upgrading to 1.1.0
+
+### Clear the manipulation cache
+
+The cache key of manipulated images changed, so every image is generated again under a new file name on its next
+render. Remove the files left by 1.0.1 once after upgrading:
+
+```bash
+php artisan image:clear
+```
+
+### Settings
+
+Defaults now live in `config/manipulations.php` and can be changed in the backend under Settings > System > Image
+(permission `renatio.image.access_settings`). Values saved in the backend take precedence over the config file.
+
+### Optimizer binaries
+
+The optimizers (jpegoptim, optipng, pngquant, cwebp, ...) are looked up on the system PATH, as in 1.0.1. Set
+`IMAGE_OPTIMIZER_PATH` in `.env`, or the binary path in the settings, only when the PHP process cannot find them,
+e.g. `/opt/homebrew/bin` on Apple Silicon.
+
+To keep the first render fast, enable "Queue optimization": the image is returned unoptimized and a queue worker
+optimizes it afterwards.
+
 ## Upgrading to 1.0.1
 
 First version of Image plugin.
@@ -75,15 +100,6 @@ Example migration:
 ## Future Versions
 
 Planned features for upcoming releases:
-
-### Version 1.1.0 (Planned)
-
-- Configurable cache directory
-- Configurable optimization timeout
-- Toggle for global optimization
-- Custom default watermark path
-- Watermark positioning options (top-left, top-right, center, etc.)
-- Watermark opacity control
 
 ### Version 1.2.0 (Planned)
 

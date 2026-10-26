@@ -1,1 +1,8 @@
 v1.0.1: First version of Image plugin.
+v1.1.0:
+    - Add backend settings (Settings > System > Image) with defaults in config/manipulations.php.
+    - Make the cache directory, optimization timeout, metadata stripping and optimizer quality configurable.
+    - Add watermark position, opacity, padding and size options.
+    - Allow the optimizer chain to run on a queue worker.
+    - Add the image:clear command that removes cached manipulations.
+    - Include the manipulation options in the cache key, so cached file names change once after upgrading.
