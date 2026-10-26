@@ -48,7 +48,8 @@ return [
     'optimizer_quality' => 80,
 
     // Path to the directory containing optimizer binaries (jpegoptim, cwebp, optipng, pngquant).
-    // Set to null to rely on the system PATH. Commonly `/opt/homebrew/bin` on Apple Silicon.
-    'binary_path' => env('IMAGE_OPTIMIZER_PATH', '/opt/homebrew/bin'),
+    // Null relies on the system PATH. Set IMAGE_OPTIMIZER_PATH when they live elsewhere, e.g. `/opt/homebrew/bin`
+    // on Apple Silicon when the PHP process does not inherit the shell PATH.
+    'binary_path' => env('IMAGE_OPTIMIZER_PATH'),
 
 ];
